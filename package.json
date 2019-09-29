@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "scripts:vendor": "node scripts/copy-vendor-scripts.js",
-    "start": "npm run scripts:vendor && node ./bin/www",
+    "vendor": "node scripts/copy-vendor-scripts.js",
+    "reset": ". ./env.sh && node scripts/reset-database.js",
+    "start": "npm run vendor && node ./bin/www",
     "start:dev": ". ./env.sh && DEBUG=dashboard:* node ./bin/www"
   },
   "dependencies": {

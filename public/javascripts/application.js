@@ -6,7 +6,7 @@
       type,
       data,
       success: data => console.log(data),
-      error: (xhr, status, text) => console.log(status, text)
+      error: (xhr, status, text) => console.log('ERR! %s; %s', status, text)
     })
   }
 
@@ -18,21 +18,21 @@
   }
 
   function toggleGroup(name) {
-    const all = $(`input[name="${name}"]`)
-    const some = $(`input[name="${name}[]"]`)
+    const all = `input[name="${name}"]`
+    const some = `input[name="${name}[]"]`
 
-    some.on('change', function() {
+    $(document).on('change', some, function() {
       if ($(`input[name="${name}[]"]:checked`).length) {
-        all.prop('indeterminate', true)
+        $(all).prop('indeterminate', true)
         return
       }
 
-      all.prop('indeterminate', false)
+      $(all).prop('indeterminate', false)
     })
 
-    $(`input[name="${name}"]`).on('change', function(e) {
+    $(document).on('change', all, function(e) {
       const { checked } = e.target
-      some.prop('checked', checked)
+      $(some).prop('checked', checked)
     })
   }
 
@@ -58,20 +58,19 @@
 
   $(function() {
     // Upload
-    $('form[name="torrents"]').on('submit', function(e) {
+    $('input[name="torrent"]').on('change', function(e) {
       e.preventDefault()
 
-      const input = $(this).find('[type="file"]')
+      const input = $(this)
       const file = input.get(0).files[0]
-      const uri = $(this).attr('action')
+      const uri = '/api/v1/torrents/new'
       const xhr = new XMLHttpRequest()
       const fd = new FormData()
 
       xhr.open('POST', uri, true)
       xhr.onreadystatechange = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
-          // const response = xhr.responseText
-          // console.log(response)
+          const { id, name } = JSON.parse(xhr.responseText)
 
           flash({
             status: 'success',
@@ -79,8 +78,17 @@
           })
 
           input.val('')
+
+          $('.table__torrents tbody').append(`
+            <tr data-torrent-active="0" data-torrent="${id}">
+              <td class="col-80">${name}</td>
+              <td class="col-10"><span class="indicator indicator--inactive" data-indicator-active="0" data-id="${id}"></span></td>
+              <td class="col-10"><input type="checkbox" name="torrents[]" value="${id}"></td>
+            </tr>
+          `)
         }
       }
+
       fd.append('torrent', file)
       xhr.send(fd)
     })
@@ -92,34 +100,43 @@
     $('.actions__clients--activate').on('click', function(e) {
       e.preventDefault()
 
-      const ports = $.map($('tr[data-port-active="0"]').find('input[name="ports[]"]:checked'), function(elem) {
-        return elem.value
-      })
+      const ports = $.map(
+        $('tr[data-port-active="0"]').find('input[name="ports[]"]:checked'),
+        elem => elem.value
+      )
 
       if (!ports.length) return
 
-      request('/api/v1/clients/start', 'POST', { ports }).then(() => ports.forEach(id => enableGroup('port', id)))
+      request('/api/v1/clients/start', 'POST', { ports }).then(() =>
+        ports.forEach(id => enableGroup('port', id))
+      )
     })
 
     $('.actions__clients--deactivate').on('click', function(e) {
       e.preventDefault()
 
-      const ports = $.map($('tr[data-port-active="1"]').find('input[name="ports[]"]:checked'), function(elem) {
-        return elem.value
-      })
+      const ports = $.map(
+        $('tr[data-port-active="1"]').find('input[name="ports[]"]:checked'),
+        elem => elem.value
+      )
 
       if (!ports.length) return
 
-      request('/api/v1/clients/stop', 'POST', { ports }).then(() => ports.forEach(id => disableGroup('port', id)))
+      request('/api/v1/clients/stop', 'POST', { ports }).then(() =>
+        ports.forEach(id => disableGroup('port', id))
+      )
     })
 
     // Torrent actions
     $('.actions__torrents--activate').on('click', function(e) {
       e.preventDefault()
 
-      const torrents = $.map($('tr[data-torrent-active="0"]').find('input[name="torrents[]"]:checked'), function(elem) {
-        return elem.value
-      })
+      const torrents = $.map(
+        $('tr[data-torrent-active="0"]').find(
+          'input[name="torrents[]"]:checked'
+        ),
+        elem => elem.value
+      )
 
       if (!torrents.length) return
 
@@ -131,15 +148,34 @@
     $('.actions__torrents--deactivate').on('click', function(e) {
       e.preventDefault()
 
-      const torrents = $.map($('tr[data-torrent-active="1"]').find('input[name="torrents[]"]:checked'), function(elem) {
-        return elem.value
-      })
+      const torrents = $.map(
+        $('tr[data-torrent-active="1"]').find(
+          'input[name="torrents[]"]:checked'
+        ),
+        elem => elem.value
+      )
 
       if (!torrents.length) return
 
       request('/api/v1/torrents/remove', 'POST', { torrents }).then(() =>
         torrents.forEach(id => disableGroup('torrent', id))
       )
+    })
+
+    // Tabs
+    $('.toggle').on('click', function() {
+      const index = $(this).attr('data-toggle')
+
+      $(`[data-toggle="${index}"]`).addClass('active')
+      $(`[data-tab="${index}"]`).addClass('active')
+
+      $('[data-toggle]')
+        .not(`[data-toggle="${index}"]`)
+        .removeClass('active')
+
+      $('[data-tab]')
+        .not(`[data-tab="${index}"]`)
+        .removeClass('active')
     })
   })
 })(jQuery)

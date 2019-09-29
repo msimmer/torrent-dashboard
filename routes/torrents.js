@@ -5,9 +5,6 @@ const api = require('../lib/api')
 const router = express.Router()
 
 function prepareTorrentUpdate(res, torrentIds, callback) {
-  if (!Array.isArray(torrentIds)) torrentIds = [torrentIds]
-  torrentIds = torrentIds.map(Number) // cast type
-
   // Get clients and filter out inactive ones
   db.getClients((error1, data) => {
     const ports = data.filter(client => client.active)
@@ -52,9 +49,9 @@ router.post('/new', (req, res) => {
       const response = JSON.parse(data)
       const { hash } = response.data
 
-      db.createTorrent(fileName, hash, error3 => {
+      db.createTorrent(fileName, hash, (error3, result) => {
         if (error3) return res.send({ error: error3, data: {} })
-        res.send(response) // send data from API
+        res.send(result)
       })
     })
   })
@@ -65,11 +62,13 @@ router.post('/new', (req, res) => {
 router.post('/add', (req, res) => {
   let { 'torrents[]': torrentIds } = req.body
 
+  if (!Array.isArray(torrentIds)) torrentIds = [torrentIds]
+  torrentIds = torrentIds.map(Number) // cast type
+
   prepareTorrentUpdate(res, torrentIds, (ports, torrents) => {
     // Add the torrents to the active clients with the API
     api.addTorrents(ports, torrents, error1 => {
       if (error1) return res.send({ error: error1, data: {} })
-
       // Update the torrents in the database by setting them to 'active'
       db.addTorrents(torrentIds, error2 => {
         res.send({ error: error2, data: {} })
@@ -81,6 +80,9 @@ router.post('/add', (req, res) => {
 // Remove a torrent from all clients
 router.post('/remove', (req, res) => {
   let { 'torrents[]': torrentIds } = req.body
+
+  if (!Array.isArray(torrentIds)) torrentIds = [torrentIds]
+  torrentIds = torrentIds.map(Number) // cast type
 
   prepareTorrentUpdate(res, torrentIds, (ports, torrents) => {
     // Remove the torrents from the active clients with the API
