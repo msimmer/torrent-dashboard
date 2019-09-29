@@ -37,28 +37,46 @@ router.post('/add', (req, res) => {
 
 // POST: { "ports": [9000, 9001, ...] }
 router.post('/remove', (req, res) => {
-  const { 'ports[]': ports } = req.body
-  db.removeClients(ports, (error1, data) => {
-    if (error1) return res.send({ error: error1, data })
-    api.removeClients(ports, (error2, data) => res.send(JSON.parse(data)))
+  let { 'ports[]': ports } = req.body
+
+  if (!Array.isArray(ports)) ports = [ports]
+
+  db.removeClients(ports, error1 => {
+    if (error1) return res.send({ error: error1, data: {} })
+    api.removeClients(ports, (error2, data) => {
+      if (error2) return res.send({ error: error2, data: {} })
+      res.send(JSON.parse(data))
+    })
   })
 })
 
 // POST: { "ports": [9000, 9001, ...] }
 router.post('/start', (req, res) => {
-  const { 'ports[]': ports } = req.body
-  db.startClients(ports, (error1, data) => {
-    if (error1) return res.send({ error: error1, data })
-    api.startClients(ports, (error2, data) => res.send(JSON.parse(data)))
+  let { 'ports[]': ports } = req.body
+
+  if (!Array.isArray(ports)) ports = [ports]
+
+  db.startClients(ports, error1 => {
+    if (error1) return res.send({ error: error1, data: {} })
+    api.startClients(ports, (error2, data) => {
+      if (error2) return res.send({ error: error2, data: {} })
+      res.send(JSON.parse(data))
+    })
   })
 })
 
 // POST: { "ports": [9000, 9001, ...] }
 router.post('/stop', (req, res) => {
-  const { 'ports[]': ports } = req.body
-  db.stopClients(ports, (error1, data) => {
-    if (error1) return res.send({ error: error1, data })
-    api.stopClients(ports, (error2, data) => res.send(JSON.parse(data)))
+  let { 'ports[]': ports } = req.body
+
+  if (!Array.isArray(ports)) ports = [ports]
+
+  db.stopClients(ports, error1 => {
+    if (error1) return res.send({ error: error1, data: {} })
+    api.stopClients(ports, (error2, data) => {
+      if (error2) return res.send({ error: error2, data: {} })
+      res.send(JSON.parse(data))
+    })
   })
 })
 
