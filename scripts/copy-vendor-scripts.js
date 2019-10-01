@@ -1,9 +1,10 @@
 const fs = require('fs')
+const path = require('path')
 
 const scripts = new Map([
   [
-    './node_modules/jquery/dist/jquery.min.js',
-    './public/javascripts/vendor/jquery.min.js'
+    path.resolve('node_modules/jquery/dist/jquery.min.js'),
+    path.resolve('./public/javascripts/vendor/jquery.min.js')
   ]
 ])
 
