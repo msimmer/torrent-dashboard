@@ -6,7 +6,7 @@
     "vendor": "node scripts/copy-vendor-scripts.js",
     "reset": ". ./env.sh && node scripts/reset-database.js",
     "start": "npm run vendor && node ./bin/www",
-    "start:dev": ". ./env.sh && DEBUG=dashboard:* node ./bin/www"
+    "start:dev": ". ./env.sh && npm run vendor && DEBUG=dashboard:* node ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -21,5 +21,20 @@
   },
   "devDependencies": {
     "eslint": "^6.4.0"
-  }
+  },
+  "description": "## Install",
+  "main": "bin/www",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msimmer/torrent-dashboard.git"
+  },
+  "author": "Maxwell Simmer <maxwell.simmer@gmail.com> (http://maxwellsimmer.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/msimmer/torrent-dashboard/issues"
+  },
+  "homepage": "https://github.com/msimmer/torrent-dashboard#readme"
 }

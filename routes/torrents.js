@@ -89,7 +89,7 @@ router.post('/remove', (req, res) => {
     api.removeTorrents(ports, torrents, error1 => {
       if (error1) return res.send({ error: error1, data: {} })
 
-      // Update the torrents in the database by setting them to 'active'
+      // Update the torrents in the database by setting them to 'inactive'
       db.removeTorrents(torrentIds, error2 => {
         res.send({ error: error2, data: {} })
       })
