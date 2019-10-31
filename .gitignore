@@ -4,3 +4,4 @@ env.sh
 public/javascripts/vendor
 /sources
 /.tmp
+ecosystem.config.js
