@@ -6,24 +6,31 @@ const router = express.Router()
 
 function prepareTorrentUpdate(res, torrentIds, callback) {
   // Get clients and filter out inactive ones
-  db.getClients((error1, data) => {
-    const ports = data.filter(client => client.active)
+  db.getClients((error1, clientData) => {
+    const ports = clientData
+      .filter(client => client.active)
+      .map(client => client.rpc_port)
 
     // End if no clients
     if (!ports.length) return res.send({ error: null, data: {} })
 
     // Get torrent data based on the IDs passed in
-    db.getTorrents(error2 => {
+    db.getTorrents((error2, torrentData) => {
       if (error2) return res.send({ error2, data: {} })
 
       // Create the torrent objects that will be passed the API
-      const torrents = data.reduce((acc, torrent) => {
-        if (!torrentIds.includes(torrent.id)) return acc
-        return acc.concat(torrent.name)
-      }, [])
+      const torrents = torrentData.reduce(
+        (acc, torrent) => {
+          if (!torrentIds.includes(torrent.id)) return acc
+          acc.hashes.push(torrent.hash)
+          acc.names.push(torrent.name)
+          return acc
+        },
+        { hashes: [], names: [] }
+      )
 
       // End if no torrents
-      if (!torrents.length) return res.send({ error: null, data: {} })
+      if (!torrents.hashes.length) return res.send({ error: null, data: {} })
 
       callback(ports, torrents)
     })
@@ -37,7 +44,10 @@ router.post('/new', (req, res) => {
 
   // The name of the input field used to retrieve the uploaded file
   const { torrent } = req.files
-  const { name: fileName } = torrent
+  const { name } = torrent
+  const fileName = `${path
+    .basename(name, path.extname(name))
+    .replace(/[^a-zA-Z0-9]/g, '-')}${path.extname(name)}`
 
   // Use the mv() method to place the file somewhere on your server
   torrent.mv(path.join(process.env.TMP_DIR, fileName), error1 => {
@@ -65,9 +75,9 @@ router.post('/add', (req, res) => {
   if (!Array.isArray(torrentIds)) torrentIds = [torrentIds]
   torrentIds = torrentIds.map(Number) // cast type
 
-  prepareTorrentUpdate(res, torrentIds, (ports, torrents) => {
+  prepareTorrentUpdate(res, torrentIds, (ports, { names }) => {
     // Add the torrents to the active clients with the API
-    api.addTorrents(ports, torrents, error1 => {
+    api.addTorrents(ports, names, error1 => {
       if (error1) return res.send({ error: error1, data: {} })
       // Update the torrents in the database by setting them to 'active'
       db.addTorrents(torrentIds, error2 => {
@@ -84,9 +94,9 @@ router.post('/remove', (req, res) => {
   if (!Array.isArray(torrentIds)) torrentIds = [torrentIds]
   torrentIds = torrentIds.map(Number) // cast type
 
-  prepareTorrentUpdate(res, torrentIds, (ports, torrents) => {
+  prepareTorrentUpdate(res, torrentIds, (ports, { hashes }) => {
     // Remove the torrents from the active clients with the API
-    api.removeTorrents(ports, torrents, error1 => {
+    api.removeTorrents(ports, hashes, error1 => {
       if (error1) return res.send({ error: error1, data: {} })
 
       // Update the torrents in the database by setting them to 'inactive'

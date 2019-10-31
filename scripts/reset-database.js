@@ -2,7 +2,7 @@ const db = require('../lib/db')
 
 db.create(err => {
   if (err) throw err
-  db.seed(10, err => {
+  db.seed(3, err => {
     if (err) throw err
     db.destroy()
   })
