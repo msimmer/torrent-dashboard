@@ -41,9 +41,9 @@ router.post('/remove', (req, res) => {
 
   if (!Array.isArray(ports)) ports = [ports]
 
-  db.removeClients(ports, error1 => {
+  api.removeClients(ports, (error1, data) => {
     if (error1) return res.send({ error: error1, data: {} })
-    api.removeClients(ports, (error2, data) => {
+    db.removeClients(ports, error2 => {
       if (error2) return res.send({ error: error2, data: {} })
       res.send(JSON.parse(data))
     })
@@ -56,9 +56,9 @@ router.post('/start', (req, res) => {
 
   if (!Array.isArray(ports)) ports = [ports]
 
-  db.startClients(ports, error1 => {
+  api.startClients(ports, (error1, data) => {
     if (error1) return res.send({ error: error1, data: {} })
-    api.startClients(ports, (error2, data) => {
+    db.startClients(ports, error2 => {
       if (error2) return res.send({ error: error2, data: {} })
       res.send(JSON.parse(data))
     })
@@ -71,9 +71,9 @@ router.post('/stop', (req, res) => {
 
   if (!Array.isArray(ports)) ports = [ports]
 
-  db.stopClients(ports, error1 => {
+  api.stopClients(ports, (error1, data) => {
     if (error1) return res.send({ error: error1, data: {} })
-    api.stopClients(ports, (error2, data) => {
+    db.stopClients(ports, error2 => {
       if (error2) return res.send({ error: error2, data: {} })
       res.send(JSON.parse(data))
     })
