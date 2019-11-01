@@ -110,6 +110,8 @@
     $('input[name="torrent"]').on('change', function(e) {
       e.preventDefault()
 
+      showSpinner()
+
       const input = $(this)
       const file = input.get(0).files[0]
       const uri = '/api/v1/torrents/new'
@@ -118,6 +120,7 @@
 
       xhr.open('POST', uri, true)
       xhr.onreadystatechange = () => {
+        if (xhr.readyState == 4) hideSpinner()
         if (xhr.readyState == 4 && xhr.status == 200) {
           const { id, name } = JSON.parse(xhr.responseText)
 
@@ -128,13 +131,13 @@
 
           input.val('')
 
-          $('.table__torrents tbody').append(`
-            <tr data-torrent-active="0" data-torrent="${id}">
-              <td class="col-80">${name}</td>
-              <td class="col-10"><span class="indicator indicator--inactive" data-indicator-active="0" data-id="${id}"></span></td>
-              <td class="col-10"><input type="checkbox" name="torrents[]" value="${id}"></td>
-            </tr>
-          `)
+          // $('.table__torrents tbody').append(`
+          //   <tr data-torrent-active="0" data-torrent="${id}">
+          //     <td class="col-80">${name}</td>
+          //     <td class="col-10"><span class="indicator indicator--inactive" data-indicator-active="0" data-id="${id}"></span></td>
+          //     <td class="col-10"><input type="checkbox" name="torrents[]" value="${id}"></td>
+          //   </tr>
+          // `)
         }
       }
 

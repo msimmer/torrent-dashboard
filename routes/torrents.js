@@ -26,6 +26,8 @@ router.post('/new', (req, res) => {
       const response = JSON.parse(data)
       const { hash } = response.data
 
+      console.log(hash)
+
       api.addWhitelistedHashes([hash], error3 => {
         if (error3) return res.send({ error: error3, data: {} })
 
