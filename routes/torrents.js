@@ -26,9 +26,17 @@ router.post('/new', (req, res) => {
       const response = JSON.parse(data)
       const { hash } = response.data
 
-      db.createTorrent(fileName, hash, (error3, result) => {
+      api.addWhitelistedHashes([hash], error3 => {
         if (error3) return res.send({ error: error3, data: {} })
-        res.send(result)
+
+        api.restartTracker(error4 => {
+          if (error4) return res.send({ error: error4, data: {} })
+
+          db.createTorrent(fileName, hash, (error5, result) => {
+            if (error5) return res.send({ error: error5, data: {} })
+            res.send(result)
+          })
+        })
       })
     })
   })

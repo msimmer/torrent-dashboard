@@ -1,6 +1,6 @@
 .DS_Store
 node_modules
-env.sh
+.env.sh
 public/javascripts/vendor
 /sources
 /.tmp
