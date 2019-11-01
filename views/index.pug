@@ -7,76 +7,67 @@ block content
   - var flashMessage = flash ? flash.message : ''
   .flash(class=flashClassName)
     p.flash__message= flashMessage
+    button.flash__close &times;
 
   .actions
-    .toggle.active(data-toggle='1')
-      p
-        strong Client Actions
-    .toggle(data-toggle='0')
-      p
-        strong Torrent Actions
+    button.actions__clients--activate Activate Selected Clients
+    button.actions__clients--deactivate Deactivate Selected Clients
+    label(for='torrent') Upload File
+      input(type='file' name='torrent')
+    button.actions__torrents--activate Add Selected Torrents to Selected Clients
+    button.actions__torrents--deactivate Remove Selected Torrents from Selected Clients
 
-    .tab(data-toggle='0')
-      .action.action__torrents
-        label(for='torrent') Upload File
-          input(type='file' name='torrent')
-        button.actions__torrents--activate Add Torrents to Active Clients
-        button.actions__torrents--deactivate Remove Torrents from Active Clients
+  .table.table__main
+    .tr
+      .td.col-30
+        .table.table__torrents
+          .thead
+            .tr
+              .th.col-90 Torrent Name
+              .th.col-10
+                input(type='checkbox'
+                      name='torrents')
+          tbody
+            each torrent in torrents
+              .tr(data-torrent-active=torrent.active, data-torrent=torrent.id)
+                .td.col-90= torrent.name
+                .td.col-10
+                  input(type='checkbox'
+                        name='torrents[]'
+                        value=torrent.id)
+      .td.col-70
+        .table.table__clients
+          .thead
+            .tr
+              .th.col-30 Client Name
+              .th.col-25 RPC Port
+              .th.col-25 Transmission Port
+              .th.col-10 Active
+              .th.col-10
+                input(type='checkbox'
+                      name='clients')
 
-    .tab.active(data-toggle='1')
-      .action.action__clients
-        form(name='clients')
-          button.actions__clients--activate Activate Selected Clients
-          button.actions__clients--deactivate Deactivate Selected Clients
+          tbody
+            each client in clients
+              .tr(data-client-active=client.active)
+                .td.col-30= client.name
+                .td.col-25= client.rpc_port
+                .td.col-25= client.transmission_port
+                .td.col-10
+                  - var modifier = client.active ? 'active' : 'inactive'
+                  span(class='indicator indicator--' + modifier
+                      data-indicator-active=client.active)
+                .td.col-10
+                  input(type='checkbox'
+                        name='clients[]'
+                        value=client.id)
+                .td.col-100
+                  details.client__details
+                    summary Torrents
+                    .client__torrents
+                      each torrent in client.torrents
+                        .client__torrent
+                          = torrent.name
+                          .action__torrent.actions__torrent--deactivate(data-client=client.id
+                                                                        data-torrent=torrent.id) &times;
 
-  .tab(data-tab='0')
-    table.table__torrents
-      thead
-        tr
-          th.col-80 Torrent Name
-          th.col-10 Active
-          th.col-10
-            input(type='checkbox'
-                  name='torrents')
-      tbody
-        each torrent in torrents
-          tr(data-torrent-active=torrent.active, data-torrent=torrent.id)
-            td.col-80= torrent.name
-            td.col-10
-                - var modifier = torrent.active ? 'active' : 'inactive'
-                span(class='indicator indicator--' + modifier
-                    data-indicator-active=torrent.active
-                    data-id=torrent.id)
-            td.col-10
-              input(type='checkbox'
-                    name='torrents[]'
-                    value=torrent.id)
-
-
-  .tab.active(data-tab='1')
-    table.table__clients
-      thead
-        tr
-          th.col-30 Client Name
-          th.col-25 RPC Port
-          th.col-25 Transmission Port
-          th.col-10 Active
-          th.col-10
-            input(type='checkbox'
-                  name='ports')
-
-      tbody
-        each client in clients
-          tr(data-port-active=client.active, data-port=client.rpc_port)
-            td.col-30= client.name
-            td.col-25= client.rpc_port
-            td.col-25= client.transmission_port
-            td.col-10
-              - var modifier = client.active ? 'active' : 'inactive'
-              span(class='indicator indicator--' + modifier
-                  data-indicator-active=client.active
-                  data-rpcport=client.rpc_port)
-            td.col-10
-              input(type='checkbox'
-                    name='ports[]'
-                    value=client.rpc_port)

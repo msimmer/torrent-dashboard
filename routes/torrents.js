@@ -4,39 +4,6 @@ const db = require('../lib/db')
 const api = require('../lib/api')
 const router = express.Router()
 
-function prepareTorrentUpdate(res, torrentIds, callback) {
-  // Get clients and filter out inactive ones
-  db.getClients((error1, clientData) => {
-    const ports = clientData
-      .filter(client => client.active)
-      .map(client => client.rpc_port)
-
-    // End if no clients
-    if (!ports.length) return res.send({ error: null, data: {} })
-
-    // Get torrent data based on the IDs passed in
-    db.getTorrents((error2, torrentData) => {
-      if (error2) return res.send({ error2, data: {} })
-
-      // Create the torrent objects that will be passed the API
-      const torrents = torrentData.reduce(
-        (acc, torrent) => {
-          if (!torrentIds.includes(torrent.id)) return acc
-          acc.hashes.push(torrent.hash)
-          acc.names.push(torrent.name)
-          return acc
-        },
-        { hashes: [], names: [] }
-      )
-
-      // End if no torrents
-      if (!torrents.hashes.length) return res.send({ error: null, data: {} })
-
-      callback(ports, torrents)
-    })
-  })
-}
-
 router.post('/new', (req, res) => {
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).send('No files were uploaded.')
@@ -67,21 +34,34 @@ router.post('/new', (req, res) => {
   })
 })
 
-// Add a torrent to all clients. Pass in torrent IDs through the UI and do
+// Add a torrent to clients. Pass in torrent IDs through the UI and do
 // queries here to get the active ports and torrent names to pass to the API
 router.post('/add', (req, res) => {
   let { 'torrents[]': torrentIds } = req.body
+  let { 'clients[]': clientIds } = req.body
 
   if (!Array.isArray(torrentIds)) torrentIds = [torrentIds]
-  torrentIds = torrentIds.map(Number) // cast type
+  if (!Array.isArray(clientIds)) clientIds = [clientIds]
 
-  prepareTorrentUpdate(res, torrentIds, (ports, { names }) => {
-    // Add the torrents to the active clients with the API
-    api.addTorrents(ports, names, error1 => {
-      if (error1) return res.send({ error: error1, data: {} })
-      // Update the torrents in the database by setting them to 'active'
-      db.addTorrents(torrentIds, error2 => {
-        res.send({ error: error2, data: {} })
+  // cast type
+  torrentIds = torrentIds.map(Number)
+  clientIds = clientIds.map(Number)
+
+  db.findClients(clientIds, (error1, clientData) => {
+    if (error1) return res.send({ error1, data: {} })
+    const ports = clientData.map(client => client.rpc_port)
+
+    db.findTorrents(torrentIds, (error2, torrentData) => {
+      if (error2) return res.send({ error2, data: {} })
+      const names = torrentData.map(torrent => torrent.name)
+
+      // Add the torrents to the active clients with the API
+      api.addTorrents(ports, names, error3 => {
+        if (error3) return res.send({ error: error3, data: {} })
+
+        db.addTorrents(torrentIds, clientIds, error4 => {
+          res.send({ error: error4, data: {} })
+        })
       })
     })
   })
@@ -90,17 +70,45 @@ router.post('/add', (req, res) => {
 // Remove a torrent from all clients
 router.post('/remove', (req, res) => {
   let { 'torrents[]': torrentIds } = req.body
+  let { 'clients[]': clientIds } = req.body
+
+  if (!torrentIds.length || !clientIds.length) {
+    return res.send({
+      error: { message: 'Torrent IDs and Client IDs are required' },
+      data: {}
+    })
+  }
 
   if (!Array.isArray(torrentIds)) torrentIds = [torrentIds]
-  torrentIds = torrentIds.map(Number) // cast type
+  if (!Array.isArray(clientIds)) clientIds = [clientIds]
 
-  prepareTorrentUpdate(res, torrentIds, (ports, { hashes }) => {
+  // Cast types
+  torrentIds = torrentIds.map(Number)
+  clientIds = clientIds.map(Number)
+
+  db.findClients(clientIds, (error1, clientData) => {
+    if (error1) return res.send({ error1, data: {} })
+    const ports = clientData.map(client => client.rpc_port)
+
+    // Get torrent hashes to pass to API
+    const hashes = clientData.reduce(
+      (acc, curr) =>
+        acc.concat(
+          curr.torrents.reduce(
+            (acc2, curr2) =>
+              torrentIds.includes(curr2.id) ? acc2.concat(curr2.hash) : acc2,
+            []
+          )
+        ),
+      []
+    )
+
     // Remove the torrents from the active clients with the API
     api.removeTorrents(ports, hashes, error1 => {
       if (error1) return res.send({ error: error1, data: {} })
 
       // Update the torrents in the database by setting them to 'inactive'
-      db.removeTorrents(torrentIds, error2 => {
+      db.removeTorrents(clientIds, torrentIds, error2 => {
         res.send({ error: error2, data: {} })
       })
     })

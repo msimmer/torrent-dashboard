@@ -25,7 +25,9 @@ function response_ok {
 
 # echo "$@"
 
-# sleep 3
+# sleep 1
+# response_error "there was an error"
+
 cmd="ls . > /dev/null 2>&1"
 if eval "$cmd"; then
   response_ok

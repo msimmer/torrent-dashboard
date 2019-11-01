@@ -1,13 +1,51 @@
 // eslint-disable-next-line no-extra-semi
 ;(function($) {
   function request(url, type, data) {
-    return $.post({
+    showSpinner()
+    return $.ajax({
       url,
       type,
       data,
-      success: data => console.log(data),
-      error: (xhr, status, text) => console.log('ERR! %s; %s', status, text)
+      success: data => {
+        const { code, message } = data
+        if (typeof code !== 'undefined' && code !== 0) {
+          return flash({
+            status: 'error',
+            message
+          })
+        }
+        return flash({
+          status: 'success',
+          message: message ? message : 'Success'
+        })
+      },
+      error: (xhr, status, text) => {
+        flash({
+          status: 'error',
+          message: 'There was an unhandled error event'
+        })
+
+        console.log('ERR! %s; %s', status, text)
+      }
+    }).always(function() {
+      hideSpinner()
+      $('input[type="checkbox"]').prop('checked', false)
     })
+  }
+
+  function showSpinner() {
+    $('.overlay').show()
+  }
+
+  function hideSpinner() {
+    $('.overlay').hide()
+  }
+
+  function flashClose() {
+    const elem = $('.flash')
+    elem.addClass('hidden')
+    elem.find('.flash__message').text('')
+    elem.removeClass(status)
   }
 
   function flash({ status, message }) {
@@ -15,6 +53,10 @@
     elem.removeClass('hidden')
     elem.find('.flash__message').text(message)
     elem.addClass(status)
+
+    if (status === 'error') return
+
+    setTimeout(flashClose, 3000)
   }
 
   function toggleGroup(name) {
@@ -37,6 +79,8 @@
   }
 
   function enableGroup(name, id) {
+    $('input').prop('indeterminate', false)
+
     const elem = $(`[data-${name}="${id}"]`)
     elem.addClass('active')
     elem.attr(`data-${name}-active`, 1)
@@ -47,6 +91,8 @@
   }
 
   function disableGroup(name, id) {
+    $('input').prop('indeterminate', false)
+
     const elem = $(`[data-${name}="${id}"]`)
     elem.removeClass('active')
     elem.attr(`data-${name}-active`, 0)
@@ -57,6 +103,9 @@
   }
 
   $(function() {
+    // UI
+    $('.flash__close').on('click', flashClose)
+
     // Upload
     $('input[name="torrent"]').on('change', function(e) {
       e.preventDefault()
@@ -93,37 +142,37 @@
       xhr.send(fd)
     })
 
-    toggleGroup('ports')
+    toggleGroup('clients')
     toggleGroup('torrents')
 
     // Client actions
     $('.actions__clients--activate').on('click', function(e) {
       e.preventDefault()
 
-      const ports = $.map(
-        $('tr[data-port-active="0"]').find('input[name="ports[]"]:checked'),
+      const clients = $.map(
+        $('input[name="clients[]"]:checked'),
         elem => elem.value
       )
 
-      if (!ports.length) return
+      if (!clients.length) return
 
-      request('/api/v1/clients/start', 'POST', { ports }).then(() =>
-        ports.forEach(id => enableGroup('port', id))
+      request('/api/v1/clients/start', 'POST', { clients }).then(() =>
+        clients.forEach(id => enableGroup('clients', id))
       )
     })
 
     $('.actions__clients--deactivate').on('click', function(e) {
       e.preventDefault()
 
-      const ports = $.map(
-        $('tr[data-port-active="1"]').find('input[name="ports[]"]:checked'),
+      const clients = $.map(
+        $('input[name="clients[]"]:checked'),
         elem => elem.value
       )
 
-      if (!ports.length) return
+      if (!clients.length) return
 
-      request('/api/v1/clients/stop', 'POST', { ports }).then(() =>
-        ports.forEach(id => disableGroup('port', id))
+      request('/api/v1/clients/stop', 'POST', { clients }).then(() =>
+        clients.forEach(id => disableGroup('clients', id))
       )
     })
 
@@ -131,16 +180,19 @@
     $('.actions__torrents--activate').on('click', function(e) {
       e.preventDefault()
 
-      const torrents = $.map(
-        $('tr[data-torrent-active="0"]').find(
-          'input[name="torrents[]"]:checked'
-        ),
+      const clients = $.map(
+        $('input[name="clients[]"]:checked'),
         elem => elem.value
       )
 
-      if (!torrents.length) return
+      const torrents = $.map(
+        $('input[name="torrents[]"]:checked'),
+        elem => elem.value
+      )
 
-      request('/api/v1/torrents/add', 'POST', { torrents }).then(() =>
+      if (!clients.length || !torrents.length) return
+
+      request('/api/v1/torrents/add', 'POST', { clients, torrents }).then(() =>
         torrents.forEach(id => enableGroup('torrent', id))
       )
     })
@@ -148,34 +200,32 @@
     $('.actions__torrents--deactivate').on('click', function(e) {
       e.preventDefault()
 
-      const torrents = $.map(
-        $('tr[data-torrent-active="1"]').find(
-          'input[name="torrents[]"]:checked'
-        ),
+      const clients = $.map(
+        $('input[name="clients[]"]:checked'),
         elem => elem.value
       )
 
-      if (!torrents.length) return
+      const torrents = $.map(
+        $('input[name="torrents[]"]:checked'),
+        elem => elem.value
+      )
 
-      request('/api/v1/torrents/remove', 'POST', { torrents }).then(() =>
-        torrents.forEach(id => disableGroup('torrent', id))
+      if (!clients.length || !torrents.length) return
+
+      request('/api/v1/torrents/remove', 'POST', { clients, torrents }).then(
+        () => torrents.forEach(id => disableGroup('torrent', id))
       )
     })
 
-    // Tabs
-    $('.toggle').on('click', function() {
-      const index = $(this).attr('data-toggle')
+    $('.actions__torrent--deactivate').on('click', function(e) {
+      e.preventDefault()
 
-      $(`[data-toggle="${index}"]`).addClass('active')
-      $(`[data-tab="${index}"]`).addClass('active')
+      const clients = [$(this).attr('data-client')]
+      const torrents = [$(this).attr('data-torrent')]
 
-      $('[data-toggle]')
-        .not(`[data-toggle="${index}"]`)
-        .removeClass('active')
-
-      $('[data-tab]')
-        .not(`[data-tab="${index}"]`)
-        .removeClass('active')
+      request('/api/v1/torrents/remove', 'POST', { clients, torrents }).then(
+        () => {}
+      )
     })
   })
 })(jQuery)

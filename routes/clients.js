@@ -4,7 +4,9 @@ const db = require('../lib/db')
 const api = require('../lib/api')
 
 router.get('/', (req, res) => {
-  db.getClients((error, data) => res.send({ error, data }))
+  db.getClients((error, data) => {
+    return res.send({ error, data })
+  })
 })
 
 // POST: { "n": 3 }
@@ -52,30 +54,42 @@ router.post('/remove', (req, res) => {
 
 // POST: { "ports": [9000, 9001, ...] }
 router.post('/start', (req, res) => {
-  let { 'ports[]': ports } = req.body
+  let { 'clients[]': clientIds } = req.body
 
-  if (!Array.isArray(ports)) ports = [ports]
+  if (!Array.isArray(clientIds)) clientIds = [clientIds]
 
-  api.startClients(ports, (error1, data) => {
-    if (error1) return res.send({ error: error1, data: {} })
-    db.startClients(ports, error2 => {
-      if (error2) return res.send({ error: error2, data: {} })
-      res.send(JSON.parse(data))
+  db.findClients(clientIds, (error0, results) => {
+    if (error0) return res.send({ error: error0, data: {} })
+    const ports = results.map(client => client.rpc_port)
+
+    api.startClients(ports, (error1, data) => {
+      if (error1) return res.send({ error: error1, data: {} })
+
+      db.startClients(ports, error2 => {
+        if (error2) return res.send({ error: error2, data: {} })
+        res.send(JSON.parse(data))
+      })
     })
   })
 })
 
 // POST: { "ports": [9000, 9001, ...] }
 router.post('/stop', (req, res) => {
-  let { 'ports[]': ports } = req.body
+  let { 'clients[]': clientIds } = req.body
 
-  if (!Array.isArray(ports)) ports = [ports]
+  if (!Array.isArray(clientIds)) clientIds = [clientIds]
 
-  api.stopClients(ports, (error1, data) => {
-    if (error1) return res.send({ error: error1, data: {} })
-    db.stopClients(ports, error2 => {
-      if (error2) return res.send({ error: error2, data: {} })
-      res.send(JSON.parse(data))
+  db.findClients(clientIds, (error0, results) => {
+    if (error0) return res.send({ error: error0, data: {} })
+    const ports = results.map(client => client.rpc_port)
+
+    api.stopClients(ports, (error1, data) => {
+      if (error1) return res.send({ error: error1, data: {} })
+
+      db.stopClients(ports, error2 => {
+        if (error2) return res.send({ error: error2, data: {} })
+        res.send(JSON.parse(data))
+      })
     })
   })
 })
