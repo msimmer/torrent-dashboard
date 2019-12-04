@@ -3,8 +3,9 @@ extends layout
 block content
   h1 Client Manger
 
-  - var flashClassName=flash ? flash.status : 'hidden'
+  - var flashClassName = flash ? flash.status : 'hidden'
   - var flashMessage = flash ? flash.message : ''
+
   .flash(class=flashClassName)
     p.flash__message= flashMessage
     button.flash__close &times;
@@ -19,50 +20,53 @@ block content
 
   .table.table__main
     .tr
-      .td.col-30
+      .td.col-50
         .table.table__torrents
           .thead
             .tr
-              .th.col-90 Torrent Name
-              .th.col-10
+              .th.col-90 Torrents
+              .th.col-10.text--center
                 input(type='checkbox'
                       name='torrents')
           tbody
             each torrent in torrents
               .tr(data-torrent-active=torrent.active, data-torrent=torrent.id)
                 .td.col-90= torrent.name
-                .td.col-10
+                .td.col-10.text--center
                   input(type='checkbox'
                         name='torrents[]'
                         value=torrent.id)
-      .td.col-70
+                .td.col-100= torrent.hash
+                .td.col-100
+                  a(href="#") Download
+      .td.col-50
         .table.table__clients
           .thead
             .tr
               .th.col-30 Client Name
-              .th.col-25 RPC Port
-              .th.col-25 Transmission Port
-              .th.col-10 Active
-              .th.col-10
+              .th.col-30 RPC Port
+              //- .th.col-30 Transmission Port
+              .th.col-30 Active
+              .th.col-10.text--center
                 input(type='checkbox'
                       name='clients')
 
           tbody
             each client in clients
-              .tr(data-client-active=client.active)
+              .tr(data-client-active=client.active data-clients=client.id)
                 .td.col-30= client.name
-                .td.col-25= client.rpc_port
-                .td.col-25= client.transmission_port
-                .td.col-10
+                .td.col-30= client.rpc_port
+                //- .th.col-30= client.transmission_port
+                .th.col-30
                   - var modifier = client.active ? 'active' : 'inactive'
                   span(class='indicator indicator--' + modifier
                       data-indicator-active=client.active)
-                .td.col-10
+                .td.col-10.text--center
                   input(type='checkbox'
                         name='clients[]'
                         value=client.id)
                 .td.col-100
-                  details.client__details
+                  details(open=true).client__details
                     summary Torrents
                     .client__torrents
                       each torrent in client.torrents

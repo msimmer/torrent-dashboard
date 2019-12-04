@@ -46,7 +46,10 @@ ul {
 .th,
 .td {
   text-align: left;
-  padding: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .tr {
@@ -56,6 +59,7 @@ ul {
   align-items: flex-start;
   flex-wrap: wrap;
   border-bottom: 1px solid;
+  padding: 0.75rem 0;
 }
 
 .table__main > .tr {
@@ -63,7 +67,7 @@ ul {
 }
 
 .client__details {
-  margin-top: -0.75rem;
+  margin-top: 0.5rem;
 }
 
 label,
@@ -72,7 +76,7 @@ summary {
 }
 
 .client__details[open] summary {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
 }
 
 .client__torrent {
@@ -111,8 +115,16 @@ summary {
   width: 30%;
 }
 
+.col-40 {
+  width: 40%;
+}
+
 .col-50 {
   width: 50%;
+}
+
+.col-60 {
+  width: 60%;
 }
 
 .col-70 {
@@ -151,12 +163,12 @@ summary {
   background-color: gainsboro;
 }
 
-input[type='text'],
-input[type='email'],
-input[type='submit'],
-input[type='file'],
-input[type='number'],
-label[for='torrent'],
+input[type="text"],
+input[type="email"],
+input[type="submit"],
+input[type="file"],
+input[type="number"],
+label[for="torrent"],
 button,
 .toggle {
   font-size: 1rem;
@@ -166,33 +178,33 @@ button,
   outline: none !important;
 }
 
-input[type='text']:hover,
-input[type='email']:hover,
-input[type='submit']:hover,
-input[type='file']:hover,
-input[type='number']:hover,
-label[for='torrent']:hover,
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="submit"]:hover,
+input[type="file"]:hover,
+input[type="number"]:hover,
+label[for="torrent"]:hover,
 button:hover,
 .toggle:hover,
-input[type='text']:active,
-input[type='email']:active,
-input[type='submit']:active,
-input[type='file']:active,
-input[type='number']:active,
-label[for='torrent']:active,
+input[type="text"]:active,
+input[type="email"]:active,
+input[type="submit"]:active,
+input[type="file"]:active,
+input[type="number"]:active,
+label[for="torrent"]:active,
 button:active,
 .toggle:active,
 .toggle.active {
   background-color: gainsboro;
 }
 
-label[for='torrent'] {
+label[for="torrent"] {
   border: 1px solid lightgrey;
   position: relative;
   width: 100px;
 }
 
-input[name='torrent'] {
+input[name="torrent"] {
   opacity: 0;
   margin: 0;
   padding: 0;
@@ -284,4 +296,14 @@ input[name='torrent'] {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.text--center {
+  text-align: center;
+}
+
+.text--ellipsis {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
