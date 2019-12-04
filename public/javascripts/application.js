@@ -258,5 +258,23 @@
         });
       });
     });
+
+    $(document).on("click", "[data-download]", function(e) {
+      e.preventDefault();
+      const name = $(this).attr("data-download");
+
+      $.get(`/api/v1/files/${name}`).then(resp => {
+        const url = window.URL.createObjectURL(new Blob([resp]));
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.setAttribute("download", name);
+
+        document.body.appendChild(link);
+
+        link.click();
+        link.parentNode.removeChild(link);
+      });
+    });
   });
 })(jQuery);

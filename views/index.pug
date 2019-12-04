@@ -38,7 +38,7 @@ block content
                         value=torrent.id)
                 .td.col-100= torrent.hash
                 .td.col-100
-                  a(href="#") Download
+                  a(href="#" data-download=torrent.name) Download
       .td.col-50
         .table.table__clients
           .thead
