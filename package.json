@@ -5,8 +5,8 @@
   "scripts": {
     "vendor": "node scripts/copy-vendor-scripts.js",
     "reset": "node scripts/reset-database.js",
-    "start": "npm run vendor && node ./bin/www",
-    "start:dev": "npm run vendor && DEBUG=dashboard:* node ./bin/www"
+    "start": "yarn vendor && node ./bin/www",
+    "start:dev": "yarn vendor && DEBUG=dashboard:* node ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

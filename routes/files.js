@@ -3,10 +3,7 @@ const fs = require("fs");
 const express = require("express");
 const router = express.Router();
 
-const fileDir =
-  process.env.NODE_ENV === "production"
-    ? process.env.APP_DIR
-    : process.env.TMP_DIR;
+const fileDir = process.env.FILE_DIR;
 
 router.get("/:name", (req, res, next) => {
   if (!req.params || !req.params.name) {
