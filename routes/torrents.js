@@ -17,26 +17,51 @@ router.post("/new", (req, res) => {
     .replace(/[^a-zA-Z0-9]/g, "-")}${path.extname(name)}`;
 
   // Use the mv() method to place the file somewhere on your server
-  torrent.mv(path.join(process.env.TMP_DIR, fileName), error1 => {
+  torrent.mv(path.join(process.env.FILE_DIR, fileName), error1 => {
+    console.log("moving torrent to %s", process.env.FILE_DIR);
+
     if (error1) return res.send({ error: error1, data: {} });
 
-    api.createTorrent(fileName, (error2, data) => {
+    api.getTorrentHash(fileName, (error2, data) => {
+      console.log("getTorrentHash");
+
       if (error2) return res.send({ error: error2, data: {} });
 
       const response = JSON.parse(data);
       const { hash } = response.data;
 
-      console.log(hash);
-
       api.addWhitelistedHashes([hash], error3 => {
+        console.log("addWhitelistedHashes");
+
         if (error3) return res.send({ error: error3, data: {} });
 
         api.restartTracker(error4 => {
+          console.log("restartTracker");
+
           if (error4) return res.send({ error: error4, data: {} });
 
-          db.createTorrent(fileName, hash, (error5, result) => {
+          db.getClients((error5, clients) => {
+            console.log("getClients");
+
             if (error5) return res.send({ error: error5, data: {} });
-            res.send(result);
+
+            const rpcPorts = clients.reduce(
+              (acc, curr) => acc.concat(curr.rpc_port),
+              []
+            );
+
+            api.reannounceTorrents(rpcPorts, error6 => {
+              console.log("reannounceTorrents");
+
+              if (error6) return res.send({ error: error6, data: {} });
+
+              db.createTorrent(fileName, hash, (error7, result) => {
+                console.log("createTorrent");
+
+                if (error7) return res.send({ error: error7, data: {} });
+                res.send(result);
+              });
+            });
           });
         });
       });
