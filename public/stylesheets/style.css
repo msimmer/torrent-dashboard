@@ -307,3 +307,8 @@ input[name="torrent"] {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+.float--right {
+  display: block;
+  float: right;
+}

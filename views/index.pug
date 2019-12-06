@@ -11,16 +11,16 @@ block content
     button.flash__close &times;
 
   .actions
-    button.actions__clients--activate Activate Selected Clients
-    button.actions__clients--deactivate Deactivate Selected Clients
-    label(for='torrent') Upload File
-      input(type='file' name='torrent')
-    button.actions__torrents--activate Add Selected Torrents to Selected Clients
-    button.actions__torrents--deactivate Remove Selected Torrents from Selected Clients
+    label(for='torrent') Upload Torrent
+      input(type='file' name='torrent' accept='application/x-bittorrent')
+    button.actions__clients--activate(disabled) Activate Selected Clients
+    button.actions__clients--deactivate(disabled) Deactivate Selected Clients
+    button.actions__torrents--activate(disabled) Add Selected Torrents to Selected Clients
+    button.actions__torrents--deactivate(disabled) Remove Selected Torrents from Selected Clients
 
   .table.table__main
     .tr
-      .td.col-50
+      .td.col-40
         .table.table__torrents
           .thead
             .tr
@@ -39,14 +39,14 @@ block content
                 .td.col-100= torrent.hash
                 .td.col-100
                   a(href="#" data-download=torrent.name) Download
-      .td.col-50
+      .td.col-60
         .table.table__clients
           .thead
             .tr
               .th.col-30 Client Name
-              .th.col-30 RPC Port
-              //- .th.col-30 Transmission Port
-              .th.col-30 Active
+              .th.col-20 RPC Port
+              .th.col-20 Trans. Port
+              .th.col-20.text--center Active
               .th.col-10.text--center
                 input(type='checkbox'
                       name='clients')
@@ -55,9 +55,9 @@ block content
             each client in clients
               .tr(data-client-active=client.active data-clients=client.id)
                 .td.col-30= client.name
-                .td.col-30= client.rpc_port
-                //- .th.col-30= client.transmission_port
-                .th.col-30
+                .td.col-20= client.rpc_port
+                .td.col-20= client.transmission_port
+                .th.col-20.text--center
                   - var modifier = client.active ? 'active' : 'inactive'
                   span(class='indicator indicator--' + modifier
                       data-indicator-active=client.active)
@@ -67,7 +67,8 @@ block content
                         value=client.id)
                 .td.col-100
                   details(open=true).client__details
-                    summary Torrents
+                    summary
+                      strong Torrents
                     .client__torrents
                       each torrent in client.torrents
                         .client__torrent

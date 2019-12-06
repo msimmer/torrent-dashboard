@@ -276,5 +276,36 @@
         link.parentNode.removeChild(link);
       });
     });
+
+    $(document).on(
+      "change",
+      "[name='torrents[]'], [name='clients[]'], [name='torrents'], [name='clients']",
+      function() {
+        const checkedTorrents = $("[name='torrents[]']:checked").length;
+        const checkedClients = $("[name='clients[]']:checked").length;
+        if (checkedTorrents && checkedClients) {
+          $(".actions__torrents--activate").removeAttr("disabled");
+          $(".actions__torrents--deactivate").removeAttr("disabled");
+        } else {
+          $(".actions__torrents--activate").attr("disabled", true);
+          $(".actions__torrents--deactivate").attr("disabled", true);
+        }
+      }
+    );
+
+    $(document).on(
+      "change",
+      "[name='clients[]'], [name='clients']",
+      function() {
+        const checkedClients = $("[name='clients[]']:checked").length;
+        if (checkedClients) {
+          $(".actions__clients--activate").removeAttr("disabled");
+          $(".actions__clients--deactivate").removeAttr("disabled");
+        } else {
+          $(".actions__clients--activate").attr("disabled", true);
+          $(".actions__clients--deactivate").attr("disabled", true);
+        }
+      }
+    );
   });
 })(jQuery);
